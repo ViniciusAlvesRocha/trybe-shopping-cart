@@ -1,6 +1,11 @@
 window.onload = function onload() {
+  console.log('Local Storage Carrinho:');
+  console.log(JSON.stringify(localStorage.getItem('infoCartMercadoLivre')));
   fetchProductsByAPI('computador');
+  getInfoCartLocalStorage();
 };
+  
+
 
 const addEventClickInButtonAddCart = (element) => {
   getProductById(element.path[1].firstChild.innerText);
@@ -16,15 +21,33 @@ const getProductById = (idProduct) => {
   fetchAPI(`https://api.mercadolibre.com/items/${idProduct}`);
 };
 
-const fetchAPI = (url, addCartFunction) => {
+const fetchAPI = (url) => {
   return fetch(url, objFetch)
   .then((response) => response.json())
   .then((responseJock) => {
-    console.log(responseJock);
     const cartItems = document.getElementsByClassName('cart__items')[0];
-    cartItems.appendChild(createCartItemElement(responseJock));
+    //Adicionando item no carrinho:
+    const itemCart = createCartItemElement(responseJock);
+    cartItems.appendChild(itemCart);
+    console.log('Item do carrinho:');
+    console.log(responseJock);
+    addProductInLocalStorage(responseJock);
   })
   .catch((error) => console.log(error));
+};
+
+const getInfoCartLocalStorage = () => {
+  const infoCart = JSON.parse(localStorage.getItem('infoCartMercadoLivre'));
+  if (infoCart === null) {
+    console.log('não há informações no carrinho');
+  } else {
+    const cartItems = document.getElementsByClassName('cart__items')[0];
+    //pegando item do local Storage e Adicionando item no carrinho:
+    infoCart.forEach((item) => {
+      const itemCart = createCartItemElement(item);
+      cartItems.appendChild(itemCart);
+    });
+  }
 };
 
 const fetchProductsByAPI = (product) => {
@@ -40,7 +63,18 @@ const fetchProductsByAPI = (product) => {
     });
     
   });
-}  
+}
+
+const addProductInLocalStorage = (productCartLocalStorage) => {
+    const varLocalStorage = [];
+    let itemsCartLoalStorage = localStorage.getItem('infoCartMercadoLivre')
+    ? JSON.parse(localStorage.getItem('infoCartMercadoLivre'))
+    : []; 
+    varLocalStorage.push(...itemsCartLoalStorage);
+    varLocalStorage.push(productCartLocalStorage)
+    localStorage.setItem('infoCartMercadoLivre',JSON.stringify(varLocalStorage));
+    console.log('Item adicionado no Local Storage');
+} ;
 
 // Requisito 2:
 
@@ -84,6 +118,7 @@ function cartItemClickListener(event) {
   this.remove();
 }
 
+//Função que adiciona item no carrinho:
 function createCartItemElement({ id:sku, title:name, price:salePrice }) {
   const li = document.createElement('li');
   li.className = 'cart__item';
