@@ -78,7 +78,10 @@ function getSkuFromProductItem(item) {
 }
 
 function cartItemClickListener(event) {
-  // coloque seu código aqui
+  // 3 - removendo item do cerrinho
+  console.log('elemento que será removido do carrinho de compras:');
+  // this refere-se ao proprio objeto HTML em si
+  this.remove();
 }
 
 function createCartItemElement({ id:sku, title:name, price:salePrice }) {
