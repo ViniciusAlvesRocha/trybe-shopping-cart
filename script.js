@@ -2,9 +2,29 @@ window.onload = function onload() {
   fetchProductsByAPI('computador');
 };
 
+const addEventClickInButtonAddCart = (element) => {
+  getProductById(element.path[1].firstChild.innerText);
+}
+
 const objFetch = {
   method: 'GET',
   headers: { 'Accept': 'application/json' }
+};
+
+const getProductById = (idProduct) => {
+  //"https://api.mercadolibre.com/items/$ItemID"
+  fetchAPI(`https://api.mercadolibre.com/items/${idProduct}`);
+};
+
+const fetchAPI = (url, addCartFunction) => {
+  return fetch(url, objFetch)
+  .then((response) => response.json())
+  .then((responseJock) => {
+    console.log(responseJock);
+    const cartItems = document.getElementsByClassName('cart__items')[0];
+    cartItems.appendChild(createCartItemElement(responseJock));
+  })
+  .catch((error) => console.log(error));
 };
 
 const fetchProductsByAPI = (product) => {
@@ -15,11 +35,14 @@ const fetchProductsByAPI = (product) => {
   .then((responseJock) => {
     console.log(responseJock.results);
     responseJock.results.forEach((result) => {
-      itemsSection.appendChild(createProductItemElement(result));
+      const itemShowcase = createProductItemElement(result)
+      itemsSection.appendChild(itemShowcase);
     });
     
   });
 }  
+
+// Requisito 2:
 
 function createProductImageElement(imageSource) {
   const img = document.createElement('img');
@@ -32,6 +55,9 @@ function createCustomElement(element, className, innerText) {
   const e = document.createElement(element);
   e.className = className;
   e.innerText = innerText;
+  if (element === 'button') {
+    e.addEventListener('click', addEventClickInButtonAddCart)
+  }
   return e;
 }
 
@@ -55,7 +81,7 @@ function cartItemClickListener(event) {
   // coloque seu código aqui
 }
 
-function createCartItemElement({ sku, name, salePrice }) {
+function createCartItemElement({ id:sku, title:name, price:salePrice }) {
   const li = document.createElement('li');
   li.className = 'cart__item';
   li.innerText = `SKU: ${sku} | NAME: ${name} | PRICE: $${salePrice}`;
