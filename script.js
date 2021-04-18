@@ -1,11 +1,23 @@
+
 window.onload = function onload() {
   console.log('Local Storage Carrinho:');
   console.log(JSON.stringify(localStorage.getItem('infoCartMercadoLivre')));
   fetchProductsByAPI('computador');
   getInfoCartLocalStorage();
+
+  const emptyCartButton = document.getElementsByClassName('empty-cart')[0];
+  emptyCartButton.addEventListener('click', emptyCart);
+  
+ 
 };
   
-
+const emptyCart = () => {
+  localStorage.clear();
+  const cartContainer = document.getElementsByClassName('cart__items')[0];
+  cartContainer.innerHTML = '';
+  const totalPrice = document.getElementsByClassName('total-price')[0];
+  totalPrice.innerHTML = '';
+};
 
 const addEventClickInButtonAddCart = (element) => {
   getProductById(element.path[1].firstChild.innerText);
@@ -16,9 +28,20 @@ const objFetch = {
   headers: { 'Accept': 'application/json' }
 };
 
-const getProductById = (idProduct) => {
+const getProductById = async (idProduct) => {
   //"https://api.mercadolibre.com/items/$ItemID"
-  fetchAPI(`https://api.mercadolibre.com/items/${idProduct}`);
+  await fetchAPI(`https://api.mercadolibre.com/items/${idProduct}`);
+  const totalPrice = document.getElementsByClassName('total-price')[0];
+  totalPrice.innerHTML = '';
+  totalPrice.innerText = parseFloat(getTotalCart().toFixed(2));
+};
+
+const getTotalCart = () => {
+  let products = JSON.parse(localStorage.getItem('infoCartMercadoLivre'));
+  return products.reduce((accumulator, product) => {
+    console.log(accumulator, product.price);
+    return accumulator + product.price
+  }, 0);
 };
 
 const fetchAPI = (url) => {
@@ -53,9 +76,12 @@ const getInfoCartLocalStorage = () => {
 const fetchProductsByAPI = (product) => {
   const itemsSection = document.getElementsByClassName('items')[0];
   const API_URL = `https://api.mercadolibre.com/sites/MLB/search?q=${product}`;
+  const containerLoading = document.getElementsByClassName('loading')[0];
+  containerLoading.innerText = 'loading';
   fetch(API_URL, objFetch)
   .then((response) => response.json())
   .then((responseJock) => {
+    containerLoading.innerText = '';
     console.log(responseJock.results);
     responseJock.results.forEach((result) => {
       const itemShowcase = createProductItemElement(result)
@@ -73,10 +99,9 @@ const addProductInLocalStorage = (productCartLocalStorage) => {
     varLocalStorage.push(...itemsCartLoalStorage);
     varLocalStorage.push(productCartLocalStorage)
     localStorage.setItem('infoCartMercadoLivre',JSON.stringify(varLocalStorage));
+    getTotalCart();
     console.log('Item adicionado no Local Storage');
 } ;
-
-// Requisito 2:
 
 function createProductImageElement(imageSource) {
   const img = document.createElement('img');
@@ -116,6 +141,27 @@ function cartItemClickListener(event) {
   console.log('elemento que será removido do carrinho de compras:');
   // this refere-se ao proprio objeto HTML em si
   this.remove();
+  removeItemCartFromLocalStorage(this);
+}
+
+const removeItemCartFromLocalStorage = (itemList) => {
+  const idItemCart = itemList.innerText.substring(5, 18);
+  const itemsCartLoalStorage = JSON.parse(localStorage.getItem('infoCartMercadoLivre'));
+  const itemCart = itemsCartLoalStorage.find((item) => item.id === idItemCart);
+  console.log(itemCart);
+  const positionRemove = itemsCartLoalStorage.indexOf(itemCart);
+  console.log(positionRemove);
+
+  let initProductsList = itemsCartLoalStorage.slice(0, positionRemove);
+  let endProductsList = itemsCartLoalStorage.slice(positionRemove + 1, itemsCartLoalStorage.length);
+  // localStorage.getItem('infoCartMercadoLivre')
+  const listProducts = [...initProductsList, ...endProductsList];
+
+  localStorage.setItem('infoCartMercadoLivre', JSON.stringify(listProducts));
+
+  const totalPrice = document.getElementsByClassName('total-price')[0];
+  totalPrice.innerHTML = '';
+  totalPrice.innerText = parseFloat(getTotalCart().toFixed(2));
 }
 
 //Função que adiciona item no carrinho:
@@ -126,3 +172,4 @@ function createCartItemElement({ id:sku, title:name, price:salePrice }) {
   li.addEventListener('click', cartItemClickListener);
   return li;
 }
+
