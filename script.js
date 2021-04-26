@@ -90,7 +90,6 @@ const getInfoCartLocalStorage = () => {
 };
 
 const getProductById = async (idProduct) => {
-  // "https://api.mercadolibre.com/items/$ItemID"
   await fetchAPI(`https://api.mercadolibre.com/items/${idProduct}`);
   const totalPrice = document.getElementsByClassName(totalPriceClass)[0];
   totalPrice.innerHTML = '';
@@ -118,7 +117,7 @@ function createProductImageElement(imageSource) {
   return img;
 }
 
-function createProductItemElement({ id: sku, name, image }) {
+function createProductItemElement({ id: sku, title: name, thumbnail: image }) {
   const section = document.createElement('section');
   section.className = 'item';
 
@@ -140,6 +139,7 @@ const fetchProductsByAPI = (product) => {
   .then((responseJock) => {
     containerLoading.innerText = '';
     console.log(responseJock.results);
+    containerLoading.remove();// para remover o loading da tela depois de ter trago as informações da API
     responseJock.results.forEach((result) => {
       const itemShowcase = createProductItemElement(result);
       itemsSection.appendChild(itemShowcase);
@@ -154,10 +154,6 @@ const emptyCart = () => {
   const totalPrice = document.getElementsByClassName(totalPriceClass)[0];
   totalPrice.innerHTML = '';
 };
-
-/* function getSkuFromProductItem(item) {
-  return item.querySelector('span.item__sku').innerText;
-} */
 
 window.onload = function onload() {
   console.log('Local Storage Carrinho:');
